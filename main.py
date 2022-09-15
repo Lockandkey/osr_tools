@@ -2,46 +2,45 @@ import os
 import pickle
 import random
 from math import sqrt
+import tables
 
 bands_path = f'{os.getcwd()}/bands'
 
 
 def get_random_band_name():
-    name_table_alpha = [
-        'Silver _',
-        'Shining _',
-        '_ Free Company',
-        '_ Brigade',
-        'Blighted _',
-        'Spectral _',
-        'Quick _',
-        'Arcane _',
-        'Honored _',
-        'Banished _',
-        'Eternal _',
-        'Silent _'
-    ]
-
-    name_table_bravo = [
-        'Lion',
-        'Reveler',
-        'Ravager',
-        'Herald',
-        'Gryphon',
-        'Zephyr',
-        'Seeker',
-        'Slayer',
-        'Boot',
-        'Blade',
-        'Wand',
-        'Shield'
-    ]
 
     name_table_plural = ['', 's']
 
-    band_name = random.choice(name_table_alpha).replace("_", random.choice(name_table_bravo)) + random.choice(
+    band_name = random.choice(tables.band_name_table_alpha).replace("_", random.choice(tables.band_name_table_bravo)) + random.choice(
         name_table_plural)
     return band_name
+
+
+def get_random_npc_name():
+    character_name = random.choice(
+        [  # todo this really needs to be replaced, api pull fantasynamegenerators maybe?
+            'Delbert Peck',
+            'Jesse Miranda',
+            'Alvin Massey',
+            'Daniel Shaffer',
+            'Gerard Stuart',
+            'Danny Ortega',
+            'Walter Maynard',
+            'Andre Fry',
+            'Chad Gallagher',
+            'Manuel Allison',
+            'Beatrice Powers',
+            'Donna Hensley',
+            'Rosie Gallagher',
+            'Hattie Ware',
+            'Michele Mack',
+            'Alicia Sanford',
+            'Bridget Taylor',
+            'Jennifer Kane',
+            'Maria Carver',
+            'Zoe Sweeney'
+        ])
+    return character_name
 
 
 def get_new_random_hostility():
@@ -56,11 +55,8 @@ def get_new_random_hostility():
 
 
 def get_random_character_class():
-    character_class_common_list = ['Fighter', 'Cleric', 'Magic User', 'Thief', 'Dwarf', 'Elf', 'Halfling']
-    # character_class_uncommon_list = []
     # todo implement expanded lists with proper probability matrix
-
-    return random.choice(character_class_common_list)
+    return random.choice(tables.character_class_common_list)
 
 
 class AdventuringBand:
@@ -69,29 +65,7 @@ class AdventuringBand:
             if character_name is not None:
                 self.character_name = character_name
             else:
-                self.character_name = random.choice(
-                    [  # todo this really needs to be replaced, api pull fantasynamegenerators maybe?
-                        'Delbert Peck',
-                        'Jesse Miranda',
-                        'Alvin Massey',
-                        'Daniel Shaffer',
-                        'Gerard Stuart',
-                        'Danny Ortega',
-                        'Walter Maynard',
-                        'Andre Fry',
-                        'Chad Gallagher',
-                        'Manuel Allison',
-                        'Beatrice Powers',
-                        'Donna Hensley',
-                        'Rosie Gallagher',
-                        'Hattie Ware',
-                        'Michele Mack',
-                        'Alicia Sanford',
-                        'Bridget Taylor',
-                        'Jennifer Kane',
-                        'Maria Carver',
-                        'Zoe Sweeney'
-                    ])
+                self.character_name = get_random_npc_name()
 
             if character_class is not None:
                 self.character_class = character_class
@@ -145,6 +119,12 @@ class AdventuringBand:
 
         print(text)
 
+    def check_hostile(self):
+        if self.hostility < random.randint(1, 100):
+            return True
+        else:
+            return False
+
 
 def write_existing_bands(list_of_bands):
     with open(bands_path, 'wb') as f:
@@ -156,6 +136,20 @@ def read_existing_bands():
         list_of_bands = pickle.load(f)
 
     return list_of_bands
+
+
+def band_wilderness_encounter(adventuring_band):
+    if random.randint(1, 100) < 75:
+        encounter_text = random.choice(tables.wilderness_encounter_evidence_results)
+    else:
+        if adventuring_band.check_hostile():
+            encounter_text = random.choice(tables.wilderness_encounter_direct_hostile_results)
+        else:
+            encounter_text = random.choice(tables.wilderness_encounter_direct_friendly_results)
+
+    encounter_text.replace("$bandname", adventuring_band.band_name)
+
+    return encounter_text
 
 
 bands_list = [AdventuringBand()]
