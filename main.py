@@ -16,30 +16,12 @@ def get_random_band_name():
     return band_name
 
 
-def get_random_npc_name():
-    character_name = random.choice(
-        [  # todo this really needs to be replaced, api pull fantasynamegenerators maybe?
-            'Delbert Peck',
-            'Jesse Miranda',
-            'Alvin Massey',
-            'Daniel Shaffer',
-            'Gerard Stuart',
-            'Danny Ortega',
-            'Walter Maynard',
-            'Andre Fry',
-            'Chad Gallagher',
-            'Manuel Allison',
-            'Beatrice Powers',
-            'Donna Hensley',
-            'Rosie Gallagher',
-            'Hattie Ware',
-            'Michele Mack',
-            'Alicia Sanford',
-            'Bridget Taylor',
-            'Jennifer Kane',
-            'Maria Carver',
-            'Zoe Sweeney'
-        ])
+def get_random_npc_name(npc_class):
+    # todo this really needs to be replaced, api pull fantasynamegenerators maybe?
+    if npc_class in tables.human_class_reference_list:
+        character_name = random.choice(tables.human_name_list)
+    else:
+        character_name = random.choice(tables.temp_nonhuman_name_list)
     return character_name
 
 
@@ -62,15 +44,16 @@ def get_random_character_class():
 class AdventuringBand:
     class Adventurer:
         def __init__(self, character_name=None, character_class=None, character_level=None):
-            if character_name is not None:
-                self.character_name = character_name
-            else:
-                self.character_name = get_random_npc_name()
 
             if character_class is not None:
                 self.character_class = character_class
             else:
                 self.character_class = get_random_character_class()
+
+            if character_name is not None:
+                self.character_name = character_name
+            else:
+                self.character_name = get_random_npc_name(self.character_class)
 
             if character_level is not None:
                 self.character_level = character_level
@@ -139,15 +122,15 @@ def read_existing_bands():
 
 
 def band_wilderness_encounter(adventuring_band):
-    if random.randint(1, 100) < 75:
-        encounter_text = random.choice(tables.wilderness_encounter_evidence_results)
+    if random.randint(1, 6) != 1:  # 5 in 6 chance of an indirect encounter
+        encounter_text = random.choice(tables.wilderness_encounter_indirect_results)
     else:
         if adventuring_band.check_hostile():
             encounter_text = random.choice(tables.wilderness_encounter_direct_hostile_results)
         else:
             encounter_text = random.choice(tables.wilderness_encounter_direct_friendly_results)
 
-    encounter_text.replace("$bandname", adventuring_band.band_name)
+    encounter_text = encounter_text.replace("$bandname", adventuring_band.band_name)
 
     return encounter_text
 
@@ -159,3 +142,4 @@ bands_list = read_existing_bands()
 
 for band in bands_list:
     band.print_full_details()
+    print(f'While in the wilderness, you find {band_wilderness_encounter(band)}')
